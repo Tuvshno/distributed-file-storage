@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/Tuvshno/Distributed-File-Storage/p2p"
 	"log"
 )
@@ -12,6 +13,13 @@ func main() {
 		HandshakeFunc: p2p.NOPHandshakeFunc,
 	}
 	tr := p2p.NewTCPTransport(tcpOpts)
+
+	go func() {
+		for {
+			msg := <-tr.Consume()
+			fmt.Printf("%v \n", msg)
+		}
+	}()
 
 	if err := tr.ListenAndAccept(); err != nil {
 		log.Fatal(err)
