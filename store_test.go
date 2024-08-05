@@ -46,4 +46,26 @@ func TestNewStore(t *testing.T) {
 	if string(b) != string(data) {
 		t.Errorf("have %s want %s", b, data)
 	}
+
+	if err := s.Delete(key); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestDelete(t *testing.T) {
+	opts := StoreOpts{
+		PathTransformFunc: CASPathTransformFunc,
+	}
+	s := NewStore(opts)
+
+	key := "picture"
+	data := []byte("some jpg bytes")
+
+	if err := s.writeStream(key, bytes.NewReader(data)); err != nil {
+		t.Error(err)
+	}
+
+	if err := s.Delete(key); err != nil {
+		t.Error(err)
+	}
 }

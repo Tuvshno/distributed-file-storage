@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
 	"os"
 	"strings"
@@ -102,4 +104,34 @@ func (s *Store) writeStream(key string, r io.Reader) error {
 	log.Printf("written to (%d) bytes to disk: %s", n, pathAndFilename)
 
 	return nil
+}
+
+func (s *Store) Delete(key string) error {
+	pathKey := s.PathTransformFunc(key)
+
+	defer func() {
+		log.Printf("Deleted %s from disk", pathKey.FullPath())
+	}()
+
+	return os.RemoveAll(pathKey.FirstPathName())
+}
+
+func (s *Store) Has(key string) bool {
+	pathKey := s.PathTransformFunc(key)
+
+	_, err := os.Stat(pathKey.FullPath())
+	if errors.Is(err, fs.ErrNotExist) {
+		return false
+	}
+
+	return true
+}
+
+func (p PathKey) FirstPathName() string {
+	paths := strings.Split(p.PathName, "/")
+	if len(paths) == 0 {
+		return ""
+	}
+
+	return paths[0]
 }
